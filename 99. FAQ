@@ -1,0 +1,21 @@
+# FAQ
+
+question: Kenapa koq feature saya tidak bisa reversal?
+
+answer: karena belum centang financial di m_feature
+
+
+question: Kenapa module saya tidak terbaca di rancher?
+
+answer: karena belum centang monitorable di m_module
+
+
+question: Kenapa module saya tidak terbaca saat dihit?
+
+answer: mungkin ada gagal parsing, misal salah packager atau pastikan socket type sesuai
+
+
+question: Bagaimana cara supaya user ATM saya terbaca?
+
+answer: di processor pastikan set machine menjadi Y, dan di table m_user juga sama. dan pastikan username terset di bit 41 mgate akan auto memvalidasi user tersebut dan mengirimnya saat hit t24/core
+
