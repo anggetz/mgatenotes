@@ -1,0 +1,203 @@
+# ROUTER:
+router dikenali oleh mgate dengan tanda bintang (*) di depan saat setup m_feature di kolom routes contoh:
+```
+{*core}
+```
+
+dan untuk mendefine *core anda harus menambahkan di table m_router
+definisi tiap kolom
+1. name
+nama untuk custom route kita contoh: *core
+2. nama plugin
+nama untuk plugin hasil build kita contoh:  KSEIssuer.so
+3. Argument
+array arguments untuk digunakan oleh plugin hasil build
+
+## Cara Build Plugin
+
+contoh plugin : KSEIssuer
+
+```
+package main
+
+import (
+	"strings"
+
+	"git.pactindo.com/micro-gate/common"
+	"git.pactindo.com/micro-gate/common/constant"
+	"git.pactindo.com/micro-gate/common/log"
+	"git.pactindo.com/micro-gate/common/model/repo"
+)
+
+/*
+KSIssuer Kalsel ATM Issuer Route. For card based transaction.
+
+Required Data:
+- bit 2
+- bit 32
+
+Optional Data:
+- bit 33
+
+args[0] = Our Bank Code
+args[1] = Our BIN (separate with comma)
+args[2] = CMS Module
+args[3] = Core Module
+args[4] = Network Module
+args[5] = Destination Bank Code (for Fund Transfer)
+args[6] = Transfer Indicator (1 = Debit, 2 = Credit)
+args[7] = Inquiry Transfer Feature Code (separate with comma)
+args[8] = Our NNS
+args[9] = EB Module
+
+note:
+  reserved field name:
+  - ourBankCode
+  - destBankCode
+*/
+func KSIssuer() common.Route {
+
+	return func(Msg *common.Message, args ...string) []string {
+
+		if len(args) != 8 {
+			log.Errorf("[%s] Route.KSIssuer: invalid number of arguments", Msg.MSID)
+			Msg.TRRSPC = repo.GetInternalRC(constant.RSPCRouteNotFound)
+			Msg.SetDecline()
+			return []string{}
+		}
+
+		if Msg.GetIsoBit(2) == "" || len(Msg.GetIsoBit(2)) < 16 || Msg.GetIsoBit(32) == "" {
+			log.Errorf("[%s] Route.KSIssuer: required data is blank or invalid. bit 2 or bit 32", Msg.MSID)
+			Msg.TRRSPC = repo.GetInternalRC(constant.RSPCRouteNotFound)
+			Msg.SetDecline()
+			return []string{}
+		}
+
+		bin := Msg.GetIsoBit(2)[:6]
+		our := args[0]
+		ourBIN := args[1]
+
+		acq := Msg.GetIsoBit(32)
+		iss := Msg.GetIsoBit(33)
+		if iss == "" {
+			if strings.Contains(ourBIN, bin) {
+				iss = our
+			} else {
+				iss = "000" // general other issuer code
+			}
+
+			Msg.SetIsoBit(33, iss)
+		}
+
+		Msg.SetField("ourBankCode", our)
+
+		/* ==== withdrawal or balance inquiry ==== */
+		if args[5] == "" {
+			if iss == our { // our card
+				if acq == our { // our terminal
+					return []string{args[3]} // core
+				}
+				return []string{args[2], args[3]} // cms, core
+			}
+
+			if acq == our { // our terminal
+				return []string{args[4], args[3]} // network, core
+			}
+
+			/* cardless withdrawal */
+			ourNNS := Msg.GetIsoBit(2)[:8]
+
+			if strings.Contains(ourNNS, args[8]) {
+				return []string{args[2], args[9], args[3]} // cms, ebanking, core
+			}
+
+			/* not allowed for other bank card and other terminal */
+			log.Errorf("[%s] Route.KSIssuer: transaction not allowed. bin: %s, acq: %s, iss: %s", Msg.MSID, bin, acq, iss)
+			Msg.TRRSPC = repo.GetInternalRC(constant.RSPCRouteNotFound)
+			Msg.SetDecline()
+			return []string{}
+		}
+
+		/* ==== transfer ==== */
+		dst := args[5]
+
+		Msg.SetField("destBankCode", dst)
+
+		/* our terminal */
+		if acq == our {
+			if iss == our && dst == our { // transfer on us
+				return []string{args[3]} // core
+			}
+
+			if iss == our { // acquire issuer
+				if strings.Contains(args[7], Msg.TRFTCD) { // transfer inquiry
+					return []string{args[4]} // network
+				}
+				return []string{args[3], args[4]} // core, network
+			}
+
+			if dst == our { // acquire destination
+				if strings.Contains(args[7], Msg.TRFTCD) { // transfer inquiry
+					return []string{args[3]} // core
+				}
+				return []string{args[4], args[3]} // network, core
+			}
+
+			/* acquire only */
+			if strings.Contains(args[7], Msg.TRFTCD) { // transfer inquiry
+				return []string{args[4]} // network
+			}
+			return []string{args[4], args[3]} // network, core
+		}
+
+		/* other terminal */
+		if strings.Contains(args[7], Msg.TRFTCD) { // transfer inquiry
+			/*if Msg.GetIsoBit(55) != "" {
+				return []string{args[2], args[3]} // cms, core
+			}*/
+			if iss == our { // our card
+				return []string{args[2], args[3]} // cms, core
+			}
+			// other card
+			return []string{args[3]} // core
+		}
+
+		/* our card */
+		if iss == our {
+			/* issuer destination */
+			if dst == our {
+				if Msg.GetIsoBit(55) == "" && args[6] != "" { // check transfer indicator
+					if args[6] == "2" { // transfer credit
+						return []string{args[3]} // core
+					}
+				}
+				return []string{args[2], args[3]} // cms, core
+			}
+
+			/* issuer only */
+			return []string{args[2], args[3]} // cms, core
+		}
+
+		/* other card */
+		if dst == our { // destination only
+			return []string{args[3]} // core
+		}
+
+		/* invalid transaction */
+		log.Errorf("[%s] Route.KSIssuer: transaction not allowed. bin: %s, acq: %s, iss: %s, dst: %s", Msg.MSID, bin, acq, iss, dst)
+		Msg.TRRSPC = repo.GetInternalRC(constant.RSPCRouteNotFound)
+		Msg.SetDecline()
+		return []string{}
+	}
+}
+
+```
+
+di paramater function ada 2 yakni:
+1. Msg:
+yang berisi Message bawaan mgate
+2. Args
+paramter argument dari table m_router yang kita setup.
+
+cara build plugin bisa check link ini:
+[link woe tulisin] :D
