@@ -1,0 +1,2 @@
+# mgatenotes
+all about mgate
