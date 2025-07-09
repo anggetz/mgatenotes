@@ -1,0 +1,110 @@
+# Processor
+
+## DataSetter
+
+Set value bit atau field dari func atau bit atau field lain.
+
+```
+<processor name="DataSetter">
+    <parameter>
+        <set field="amountAppraisal"><data static=""/></set>
+        <set field="amountAsuransiKredit"><data static=""/></set>
+        <set field="amountAsuransiJiwa"><data static=""/></set>
+        <set field="amountAsuransiKebakaran"><data static=""/></set>
+        <set field="amountFlagging"><data static=""/></set>
+        <set field="amountMarketing"><data static=""/></set>
+    </parameter>
+</processor>
+```
+
+## DataBuilder
+
+build data, misal ingin build bit48 atau data lain sesuai kebutuhan:
+
+```
+<processor name="DataBuilder.so">
+      <parameter>
+          <data field="collRightId"/>
+          <items>
+              <item pad="A"><data field="cif"/></item>
+              <item pad="A"><data static="."/></item>
+              <item pad="A"><data field="seqColNum"/></item>
+          </items>
+      </parameter>
+  </processor>
+```
+
+## DataParser
+
+parsing data dari bit atau field dan memasukannya ke variable atau bit
+
+```
+
+<group filter="fin.rsp| I | 1504,1505 | rspc=00" description="set destinationName">
+  <processor name="DataParser.so">
+    <parameter>
+      <data bit="48" />
+      <items>
+        <item len="18" field="reffNo" />
+        <item len="18" field="issuerName" />
+        <item len="12" field="billAmount" />
+        <item len="52" field="destinationName" />
+      </items>
+    </parameter>
+  </processor>
+</group>
+```
+
+## Bitmap
+
+Set bitmap yang ingin outgoing
+
+```
+<group filter="fin.rsp | O | 1505 | field.debitCreditIndicator=2">
+  <processor name="Bitmap.so">
+    <parameter>
+      <map class="fin.rsp" feature="1505">
+        2,3,4,7,11,12,13,15,o:29,o:31,o:32,33,37,38,39,41,48,49,o:50,o:60,o:63,o:90,o:95,o:102,o:104</map>
+    </parameter>
+  </processor>
+</group>
+```
+
+## Merge Bitmap
+
+define bit yang ingin diubah
+
+```
+<group filter="fin.rsp | O | 1505 | field.debitCreditIndicator=2">
+  <processor name="Bitmap.so">
+    <parameter>
+      <map class="fin.rsp" feature="1505">
+        2,3,4,7,11,12,13,15,o:29,o:31,o:32,33,37,38,39,41,48,49,o:50,o:60,o:63,o:90,o:95,o:102,o:104</map>
+    </parameter>
+  </processor>
+</group>
+```
+
+## JsonBuilder
+
+build json 
+
+```
+<processor name="JSONBuilder">
+    <parameter>
+        <data field="response"/>
+        <items type="O">
+            <item name="terminalLocation"><data field="terminalLocation"/></item>
+            <item name="dateTime"><data field="dateTime"/></item>
+            <item name="amount"><data field="amount"/></item>
+            <item name="toDate"><data field="toDate"/></item>
+            <item name="description"><data field="description"/></item>
+            <item name="terminalType"><data field="terminalType"/></item>
+            <item name="coCode"><data field="coCode"/></item>
+            <item name="refNumber"><data field="refNumber"/></item>
+            <item name="hashCode"><data field="hashCode"/></item>
+            <item name="coreReference"><data field="OFS.KeyRev"/></item>
+        </items>
+    </parameter>
+</processor>
+```
