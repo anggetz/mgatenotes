@@ -1,33 +1,37 @@
-[# mgatenotes
-all about mgate
-](https://documenter.getpostman.com/view/7468642/2s9YBz3vgE#ab0604f5-e6ca-4dca-9f58-42ac73ee68eb
+## Doc Template Product M-GATE 
+
+(https://documenter.getpostman.com/view/7468642/2s9YBz3vgE#ab0604f5-e6ca-4dca-9f58-42ac73ee68eb
 
 Doc mgate
 
 Mgate punya 3 repo,
 
 1. repo utama berisi banya repo seperti transport, common dkk
-	2. Repo helmchart untuk orchestra helm chart dari repo workspace
-	3. Repo workspace untuk tempat kerja developer
+2. Repo helmchart untuk orchestra helm chart dari repo workspace
+3. Repo workspace untuk tempat kerja developer
 
-1.1. Repo utama
-Berisi coding core untuk mgate, disini terdapat macam2 repo ada transport common dll kita bisa custom kalau sudah ada persetujuan dari mas willy.
+## 1.1. Repo utama
+	Berisi coding core untuk mgate, disini terdapat macam2 repo ada transport common dll kita bisa custom kalau sudah ada persetujuan dari mas willy.
 
-1.1.1 Transport
+### 1.1.1 Transport
 	- Jika set port untuk as server wajib 4 digit jika tidka makan tidak berhasil.
 
-3.1. Repo Workspace
-Di repo workspace ada 2 yml, 1 yml untuk orchestration repo helmchart, yaml kedua adalah untuk env value untuk repo helmchart (bisa diliat ada beberapa kondisi di repo helmchart menggunakan env dari repo workspace).
+## 3.1. Repo Workspace
+	Di repo workspace ada 2 yml, 1 yml untuk orchestration repo helmchart, yaml kedua adalah untuk env value untuk repo helmchart (bisa diliat ada beberapa kondisi di repo helmchart menggunakan env dari repo 	workspace).
 
-3.1.1. Custom Repo workspace
-Developer bisa mengcustom coding di repo workspace , yang di override adalah coding yang di repo utama. Lalu skemanya bagaimana.
+###3.1.1. Custom Repo workspace
+	Developer bisa mengcustom coding di repo workspace , yang di override adalah coding yang di repo utama. Lalu skemanya bagaimana.
 
-1. kita perlu membuat dockerfile yang use image dari hasil build image di repo utama
-As example:
+	1. kita perlu membuat dockerfile yang use image dari hasil build image di repo utama
+	As example:
 
-FROM [name image from nexus repo]:[tag]
-// do customise here
+	FROM [name image from nexus repo]:[tag]
+	// do customise here
 
+ 	```
+  	FROM nexus.pactindo.com:8443/micro-gate/transport:3.1.8
+	```
+  
 
 Di atas adalah contoh dockerfilenya, selanjutnya kita cukup build dockerfile tersebut dengan name image sama dan tag sama lalu push ke nexus repo,
 
