@@ -12,4 +12,12 @@ support processor: DataSetter.so
 </set>
 ```
 
+## len str
+
+menghitung panjang length dari karakter
+support processor: DataSetter.so
+```
+<func name="str">len</func>
+```
+
 
