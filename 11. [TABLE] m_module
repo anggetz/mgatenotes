@@ -1,0 +1,20 @@
+# M Module
+
+definisi:
+
+1. channel_code: identifikasi module (unique)
+2. worker_count: number threads, jika threads penuh maka akan masuk waiting list.
+3. transform_driver: untuk transform request atau response, JSONTransform | ISOTransform | OFSTransform
+4. processor: list dari processor files.
+5. org_key: kombinasi validasi jika financial is true di m_feature
+6. out_key: untuk membuat key response agar tau requestnya yang mana contoh kasus: jika kita request default kombinasi, tapi aj kadang mengganti bit 7 jadi kita perlu mapping
+7. tx-manager: api manager
+8. monitorable: untuk menampilkan module 
+9. need_signon: flagging apakah module auto sign on saat running
+10. signon_period: untuk interval signon
+11. need_echo: auto ping 
+12. echo_period: echo interval
+13. need_keychange: keychange adalah key untuk memvalidasi pin di bit 52, masuk network message
+14. keychange_period: ini interval keychange
+15. properties: setup module
+16. description: deskripsi module
