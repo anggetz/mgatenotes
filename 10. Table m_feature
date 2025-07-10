@@ -1,0 +1,9 @@
+# Table m feature
+
+## Kolom:
+
+1. module_name:
+
+*all = semua module
+internal = internal response code mgate (biasanya default)
+response_name = contains error kalau di ofs dia contains error desc tersebut dan dijadikan ke code berdasarkan response code
