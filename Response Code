@@ -1,0 +1,7 @@
+# Response Code
+
+1. RC 06 = Timeout
+2. RC 99 = General Error
+3. RC 53 = General Error
+4. RC 19 = Timeout / Link To Host Down
+5. RC 07 = Error Processor or Ref Number length
