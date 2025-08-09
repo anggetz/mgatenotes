@@ -1,0 +1,29 @@
+# Cache
+support time 2 menit, support s (second), m (minutes), and h (hours)
+
+# scache
+cache cross module.
+
+Cara set scache di data setter
+```
+<processor name="DataSetter.so">
+			<parameter>        
+				<set scache="featureSecondary-{rrn} | 2m">
+				    <data field="featureSecondary"/>											
+				</set>            
+			</parameter>
+</processor>
+```
+
+# cache
+cache context module
+
+```
+<processor name="DataSetter.so">
+			<parameter>        
+				<set cache="featureSecondary-{rrn} | 2m">
+				    <data field="featureSecondary"/>											
+				</set>            
+			</parameter>
+</processor>
+```
